@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build WiFiSim",
+      "type": "shell",
+      "command": "gcc",
+      "args": [
+        "-Wall",
+        "-O2",
+        "-I", "include",
+        "src/main.c",
+        "src/station.c",
+        "src/event.c",
+        "src/logger.c",
+        "-o", "wifi_sim"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Clean WiFiSim",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-f", "wifi_sim"],
+      "problemMatcher": []
+    }
+  ]
+}
