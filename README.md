@@ -22,7 +22,7 @@ MINI802.11SIM/
 
 ---
 
-## ?? 專案背景：MiniWiFiSim 是什麼？
+## ? 專案背景：MiniWiFiSim 是什麼？
 
 本專案為一個簡化的 Wi-Fi MAC 協定模擬器，主要模擬 **IEEE 802.11 Distributed Coordination Function (DCF)** 中的 **CSMA/CA（Carrier Sense Multiple Access with Collision Avoidance）** 機制。DCF 是目前 Wi-Fi 網路中最常見的傳輸控制機制。
 
@@ -43,7 +43,7 @@ MINI802.11SIM/
 
 ---
 
-## ? 模擬設定（固定參數）
+## ?? 模擬設定（固定參數）
 
 - Frame Tx Time         : 3 ticks  
 - ACK Tx Time           : 1 tick  
@@ -59,7 +59,7 @@ MINI802.11SIM/
 
 ## ? 模擬結果摘要（平均值）
 
-| 測試編號 | STA 數量 | New Frame Prob | Throughput | Collisions | Busy Ticks (%) | Idle Ticks (%) | Avg Success / STA | Avg Transmit / STA | Success Rate |
+| Case | #STA | NewFrame% | Throughput | Collisions | Busy(%) | Idle(%) | Success/STA | Tx/STA | SuccessRate |
 |----------|-----------|----------------|------------|------------|----------------|----------------|--------------------|---------------------|---------------|
 | Case A   | 3         | 50%            | 8.66       | 2.33       | 45.33%         | 54.67%         | 2.89               | 3.67                | 80.03%        |
 | Case B   | 3         | 90%            | 7.67       | 3.33       | 43.33%         | 56.67%         | 2.55               | 3.78               | 67.90%        |
@@ -70,12 +70,12 @@ MINI802.11SIM/
 
 ## ? 結果分析總結
 
-### ? Throughput 表現
+### Throughput 表現
 - **Case A** （3 STA, 50%） throughput 最高（8.66），顯示在低負載、小規模網路下，整體傳輸效率最佳，且碰撞機率低。
 - **Case B** （3 STA, 90%） throughput 雖略降為 7.67，但仍維持良好水準，代表在小規模網路中，即使傳送需求高，也不會立即造成效能崩潰。
 - **Case C、D** （10 STA） throughput 明顯下降，尤其是 Case D（4.67），表明大規模網路下，即便有更高的 frame 產生率，也無法補償因碰撞頻率過高所導致的效能損耗。
 
-### ? 碰撞與成功率
+### 碰撞與成功率
 - 碰撞數從 **Case A（2.33）** 穩定地升高至 **Case D（18.00）**，顯示隨著 STA 數增多，channel 競爭變得劇烈。
 - 成功率（Success Rate）對應下降：
   - Case A：80.03%
@@ -83,11 +83,11 @@ MINI802.11SIM/
   - 即便 Case D 的總傳送次數最多（22.7 次），但平均每次傳送成功的比例卻最低（僅 20.77%），
   顯示在高密度 + 高流量下，碰撞損失非常嚴重，多數傳送都沒有成果。
 
-### ? Channel 使用情形
+### Channel 使用情形
 - **Busy Tick 比例** 最高為 Case A（45.33%），表示小規模網路中的傳送行為較集中、頻率穩定。
 - **Case D** 反而 Busy Tick 降至 38.00%，說明傳送雖多，但碰撞造成了大量「無效佔用」與時間浪費。
 
-### ? 綜合觀察（根據統計數據）
+### 綜合觀察（根據統計數據）
 
 - 在小規模網路下（Case A、B：3 STA），提高 frame 機率雖然略微提升傳送次數（3.67 → 3.78），但因碰撞次數增加（2.33 → 3.33），success rate 反而下降（80.03% → 67.90%），導致 throughput 較 A 減少（8.66 → 7.67）。
 - 當 STA 數提升至 10（Case C、D），即使個別節點傳送率不高（C：1.97；D：2.27），整體傳送量大幅增加，channel 爭用激烈，導致碰撞急升（C：13.67；D：18.00），success rate 分別降至 29.20% 與 20.77%，throughput 崩跌至 5.67 和 4.67。
