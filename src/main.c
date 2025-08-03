@@ -6,62 +6,41 @@
 #include "logger.h"
 #include "station.h"
 
-
-
-Station stations[NUM_STA];  // STA 陣列
-Event* event_queue = NULL;  // 事件佇列（指向最早事件）
+Station stations[MAX_STA];          // 所有 STA 的陣列
+Event* event_queue = NULL;          // 事件佇列（模擬用）
 
 int main() {
-    srand(time(NULL));  // 讓每次 rand() 結果不同
-    int channel_idle_since = -1;  // -1 表示還沒 idle
+    srand(time(NULL));              // 讓每次 rand() 結果不同（確保結果變化）
+ 
     // 初始化所有 STA
     for (int i = 0; i < NUM_STA; i++) {
         init_station(&stations[i], i);
     }
 
-    // 初始時讓所有 STA 都有一筆資料要傳 
+     // 初始每個 STA 都有一筆待傳資料，從 time = 0 加入事件佇列
     for (int i = 0; i < NUM_STA; i++) {
         add_event(&event_queue, 0, EVENT_NEW_FRAME, i);
     }
 
-    // Tick-by-tick 模擬主迴圈
+    // Tick-by-tick 模擬主迴圈（每一 tick 模擬實際無線網路的一段微時間）
     for (int time = 0; time < SIM_TIME; time++) {
-        // 檢查是否有事件要處理
-        while (event_queue && event_queue->time == time) {
+        // 先處理此 tick 對應的所有事件（可能是 New frame 或 timeout）
+        while (event_queue && event_queue->time == time) {   // 表當前時間有事件存在
             Event* e = pop_event(&event_queue);
             Station* sta = &stations[e->sta_id];
 
             switch (e->type) {
                 case EVENT_NEW_FRAME:
-                    sta->has_frame = 1;
+                    sta->has_frame = 1;   // STA 產生新的資料要傳送  
                     break;
 
                 case EVENT_TIMEOUT:
                     // 如果 timeout，但目前還沒超過最大重傳次數，進入 retry
-                    if (stations[e->sta_id].state == STA_WAIT_ACK) {
-                        stations[e->sta_id].wait_ack_timer = 0;
-                        log_retry(e->sta_id);  //  模擬重傳
+                    if (sta->state == STA_WAIT_ACK) {
+                        sta->wait_ack_timer = 0;    // 回 IDLE 等待 DIFS
+                        log_retry(e->sta_id);       // retry 次數在碰撞時已經加了
                     }
                     break;
-
-                // case EVENT_TIMEOUT:
-                //     if (stations[e->sta_id].state == STA_WAIT_ACK) {
-                //         Station* sta = &stations[e->sta_id];
-                //         sta->retry_count++;
-                //         if (sta->retry_count <= MAX_RETRY) {
-                //             sta->state = STA_DIFS_WAIT;
-                //             sta->difs_timer = DIFS;
-                //             sta->wait_ack_timer = 0;
-                //             log_retry(e->sta_id);
-                //         } else {
-                //             // 超過最大重傳次數，丟棄 frame
-                //             sta->state = STA_IDLE;
-                //             sta->has_frame = 0;
-                //             sta->retry_count = 0;
-                //             log_drop(e->sta_id);
-                //         }
-                //     }
-                //     break;
 
                 default: break;
             }
@@ -69,57 +48,69 @@ int main() {
             free(e);
         }
 
-        // 判斷媒介是否正在傳送
+        // 判斷當前 tick 是否有 STA 正在傳送或等待 ACK → 若是，代表媒介正忙
         int channel_busy = 0;
         int num_transmitting = 0;
         for (int i = 0; i < NUM_STA; i++) {
-            if (is_transmitting(&stations[i])) {
+            if (is_transmitting(&stations[i]) || is_waitingACK(&stations[i])) {
                 channel_busy = 1;
-                num_transmitting++;
+                if (is_transmitting(&stations[i])) num_transmitting++;    
             }
         }
 
         if (channel_busy) {
-            log_channel_busy();
-            channel_idle_since = -1;
+            log_channel_busy();     // 紀錄 busy tick 統計
         } else {
-            log_channel_idle();
-            if (channel_idle_since == -1) {
-                channel_idle_since = time;  // 第一次變 idle，就記錄這個 tick
-            }
+            log_channel_idle();     // 紀錄 idle tick 統計
         }
-        // 先印出 ACK 資訊
+        
+        // 若有 STA 準備在此 tick 收到 ACK，先印出提示
         for (int i = 0; i < NUM_STA; i++) {
             Station* sta = &stations[i];
             if (sta->state == STA_WAIT_ACK && sta->wait_ack_timer == 1) {
-                printf("[%d] STA %d received ACK successfully\n", time, sta->id);
+                printf("[%d] STA %d received ACK successfully!\n", time, sta->id);
             }
         }
-        // 更新每個 STA 狀態
+
+        // ========== STA 狀態更新 ==========
+
+        // 第一階段：非 ACK 狀態的 STA 更新狀態
         for (int i = 0; i < NUM_STA; i++) {
             Station* sta = &stations[i];
-            // 儲存前一狀態以便判斷是否剛剛進入 WAIT_ACK
-            int prev_state = sta->state;
 
-            update_station(sta, time, channel_busy, channel_idle_since, num_transmitting);
+            for (int i = 0; i < NUM_STA; i++) {
+                Station* sta = &stations[i];
+                if (sta->wait_ack_timer == 1) channel_busy = 0;
+            }
 
-            // 剛進入 WAIT_ACK → 安排 future ACK 或 timeout event
+            if (sta->state != STA_WAIT_ACK) update_station(sta, time, channel_busy, num_transmitting);
+        }
+
+        // 第二階段：處理 ACK 的 STA 狀態轉移邏輯
+        for (int i = 0; i < NUM_STA; i++) {
+            Station* sta = &stations[i];
+            int prev_state = sta->state;    // 儲存前一狀態以便判斷是否剛剛進入 WAIT_ACK
+
+            if (sta->state == STA_WAIT_ACK) update_station(sta, time, channel_busy, num_transmitting);
+
+            // 剛進入 WAIT_ACK → 如果碰撞，安排 timeout event
             if (prev_state != STA_WAIT_ACK && sta->state == STA_WAIT_ACK) {
-                if (num_transmitting > 1) {
+                if (num_transmitting > 1) {     // 超過 1 個 STA 傳送表示碰撞
                     add_event(&event_queue, time + 1, EVENT_TIMEOUT, i);
                     log_collision(i);
                 }
             }
         }
 
-        // 每個 tick 有機率產生新 frame 
+        // 每個 tick，空閒且沒有資料的 STA 有機率產生新要傳的 frame
         for (int i = 0; i < NUM_STA; i++) {
-            if (!stations[i].has_frame && rand() % 100 < NEW_FRAME_PROB) {
+            if (!stations[i].has_frame && rand() % 100 < NEW_FRAME_PROB && stations[i].wait_ack_timer == 0) {
+                printf("[%d] STA %d has a new frame to send\n", time + 1, i);
                 add_event(&event_queue, time + 1, EVENT_NEW_FRAME, i);
             }
         }        
     }
 
-    print_simulation_summary(SIM_TIME);  // ? 輸出總結
+    print_simulation_summary(SIM_TIME);  // 輸出模擬總結統計資訊
     return 0;
 }
