@@ -1,49 +1,49 @@
 
-# MiniWifiSim - ��� IEEE 802.11 ���ɶ��X�� CSMA/CA ������
+# MiniWifiSim - 模擬 IEEE 802.11 CSMA/CA 協定的 Tick-based 模擬器
 
-## ? �ؿ����c
+## 📁 目錄結構
 
 ```
 MINI802.11SIM/
-�u�w�w .vscode/
-�x   �u�w�w settings.json
-�x   �u�w�w tasks.json
-�u�w�w include/            # �Ҧ����Y�ɡ]�ŧi struct �P��ƭ쫬�^
-�x   �u�w�w station.h       # STA ���c�P������ƫŧi
-�x   �u�w�w event.h         # �ƥ��C���c�P�ާ@��ƫŧi
-�x   �|�w�w logger.h        # �����έp�P log ��ƫŧi
-�u�w�w src/                # �{���D���l�X
-�x   �u�w�w main.c          # �D�����{���]tick-by-tick ����y�{�^
-�x   �u�w�w station.c       # �U STA �����A���P�ǿ��޿��@
-�x   �u�w�w event.c         # �ƥ��C���W�R�P�Ƨǹ�@
-�x   �|�w�w logger.c        # �έp�O���P������X�榡��
-�|�w�w README.md
+├── .vscode/
+│   ├── settings.json
+│   ├── tasks.json
+├── include/            # 所有標頭檔（宣告 struct 與函數原型）
+│   ├── station.h       # STA 結構與相關函數宣告
+│   ├── event.h         # 事件佇列結構與操作函數宣告
+│   └── logger.h        # 模擬統計與 log 函數宣告
+├── src/                # 程式主體原始碼
+│   ├── main.c          # 主模擬程式（tick-by-tick 控制流程）
+│   ├── station.c       # 各 STA 的狀態機與傳輸邏輯實作
+│   ├── event.c         # 事件佇列的增刪與排序實作
+│   └── logger.c        # 統計記錄與模擬輸出格式化
+└── README.md
 ```
 
 ---
 
-## ? �M�׭I���GMiniWiFiSim �O����H
+## ❓ 專案背景：MiniWiFiSim 是什麼？
 
-���M�׬��@��²�ƪ� Wi-Fi MAC ��w�������A�D�n���� **IEEE 802.11 Distributed Coordination Function (DCF)** ���� **CSMA/CA�]Carrier Sense Multiple Access with Collision Avoidance�^** ����CDCF �O�ثe Wi-Fi �������̱`�����ǿ鱱�����C
+本專案為一個簡化的 Wi-Fi MAC 協定模擬器，主要模擬 **IEEE 802.11 Distributed Coordination Function (DCF)** 中的 **CSMA/CA（Carrier Sense Multiple Access with Collision Avoidance）** 機制。DCF 是目前 Wi-Fi 網路中最常見的傳輸控制機制。
 
-�b���������A�ڭ̫غc�@�������ƥ�t�ΡA�����h�� STA�]Station�^�b�@�ɳq�D�W�i��ʥ]�ǿ�B���� DIFS�B���� Backoff�B�����I���B�B�z ACK ���ާ@�C���M�Ӹ`�w²�ơA�������޿褴����ϬM Wi-Fi ���֤ߴC��s���欰�C
-
----
-
-## ? ����²��
-
-���������@�ӥH C �y�����g�� IEEE 802.11 DCF (Distributed Coordination Function) ��w�� MAC �h²�Ƽ������A�䴩�G
-
-- CSMA/CA �ǿ�y�{�]�t DIFS, Backoff, SIFS, ACK ���^
-- �h STA ���Ҽ����P�v������
-- �H���s��Ʋ��ͨƥ�
-- �����ɶ��H tick �����A�v tick �B�z�ǰe�P�ƥ�欰
-
-���������i��U�[��U�����ҰѼƹ�� throughput�Bcollision ���į���Ъ��v�T�C
+在此模擬中，我們建構一個離散事件系統，模擬多個 STA（Station）在共享通道上進行封包傳輸、等待 DIFS、執行 Backoff、偵測碰撞、處理 ACK 等操作。雖然細節已簡化，但整體邏輯仍忠實反映 Wi-Fi 的核心媒體存取行為。
 
 ---
 
-## ?? �����]�w�]�T�w�Ѽơ^
+## 🧪 模擬簡介
+
+本模擬為一個以 C 語言撰寫之 IEEE 802.11 DCF (Distributed Coordination Function) 協定的 MAC 層簡化模擬器，支援：
+
+- CSMA/CA 傳輸流程（含 DIFS, Backoff, SIFS, ACK 等）
+- 多 STA 環境模擬與競爭機制
+- 隨機新資料產生事件
+- 模擬時間以 tick 為單位，逐 tick 處理傳送與事件行為
+
+本模擬器可協助觀察各種環境參數對於 throughput、collision 等效能指標的影響。
+
+---
+
+## ⚙️ 模擬設定（固定參數）
 
 - Frame Tx Time         : 3 ticks  
 - ACK Tx Time           : 1 tick  
@@ -53,70 +53,70 @@ MINI802.11SIM/
 - Contention Window Max : 31  
 - MAX_RETRY             : 5  
 - Total Tick Time       : 100  
-- **�C�հѼƼ������榸��**�G3 ���]�������^
+- **每組參數模擬執行次數**：3 次（取平均）
 
 ---
 
-## ? �������G�K�n�]�����ȡ^
+## 📊 模擬結果摘要（平均值）
 
 | Case | #STA | NewFrame% | Throughput | Collisions | Busy(%) | Idle(%) | Success/STA | Tx/STA | SuccessRate |
 |----------|-----------|----------------|------------|------------|----------------|----------------|--------------------|---------------------|---------------|
 | Case A   | 3         | 50%            | 8.66       | 2.33       | 45.33%         | 54.67%         | 2.89               | 3.67                | 80.03%        |
 | Case B   | 3         | 90%            | 7.67       | 3.33       | 43.33%         | 56.67%         | 2.55               | 3.78               | 67.90%        |
 | Case C   | 10        | 50%            | 5.67       | 13.67      | 40.33%         | 59.67%         | 0.57              | 1.97                | 29.20%        |
-| Case D   | 10        | 90%            | 4.67       | 18.00      | 38.00%         | 62.00%         | 0.47              | 2.27                | 20.77%        |
+| Case D   | 10        | 90%            | 4.67       | 18.00      | 38.00%         | 62.00%         | 0.47              | 2.27               | 20.77%        |
 
 ---
 
-## ? ���G���R�`��
+## 📈 結果分析總結
 
-### Throughput ���{
-- **Case A** �]3 STA, 50%�^ throughput �̰��]8.66�^�A��ܦb�C�t���B�p�W�Һ����U�A����ǿ�Ĳv�̨ΡA�B�I�����v�C�C
-- **Case B** �]3 STA, 90%�^ throughput �������� 7.67�A���������}�n���ǡA�N���b�p�W�Һ������A�Y�϶ǰe�ݨD���A�]���|�ߧY�y���į�Y��C
-- **Case C�BD** �]10 STA�^ throughput ����U���A�ר�O Case D�]4.67�^�A�����j�W�Һ����U�A�Y�K���󰪪� frame ���Ͳv�A�]�L�k���v�]�I���W�v�L���ҾɭP���į�l�ӡC
+### Throughput 表現
+- **Case A** （3 STA, 50%） throughput 最高（8.66），顯示在低負載、小規模網路下，整體傳輸效率最佳，且碰撞機率低。
+- **Case B** （3 STA, 90%） throughput 雖略降為 7.67，但仍維持良好水準，代表在小規模網路中，即使傳送需求高，也不會立即造成效能崩潰。
+- **Case C、D** （10 STA） throughput 明顯下降，尤其是 Case D（4.67），表明大規模網路下，即便有更高的 frame 產生率，也無法補償因碰撞頻率過高所導致的效能損耗。
 
-### �I���P���\�v
-- �I���Ʊq **Case A�]2.33�^** í�w�a�ɰ��� **Case D�]18.00�^**�A����H�� STA �ƼW�h�Achannel �v���ܱo�@�P�C
-- ���\�v�]Success Rate�^�����U���G
-  - Case A�G80.03%
-  - Case D�G20.77%
-  - �Y�K Case D ���`�ǰe���Ƴ̦h�]22.7 ���^�A�������C���ǰe���\����ҫo�̧C�]�� 20.77%�^�A
-  ��ܦb���K�� + ���y�q�U�A�I���l���D�`�Y���A�h�ƶǰe���S�����G�C
+### 碰撞與成功率
+- 碰撞數從 **Case A（2.33）** 穩定地升高至 **Case D（18.00）**，顯示隨著 STA 數增多，channel 競爭變得劇烈。
+- 成功率（Success Rate）對應下降：
+  - Case A：80.03%
+  - Case D：20.77%
+  - 即便 Case D 的總傳送次數最多（22.7 次），但平均每次傳送成功的比例卻最低（僅 20.77%），
+  顯示在高密度 + 高流量下，碰撞損失非常嚴重，多數傳送都沒有成果。
 
-### Channel �ϥα���
-- **Busy Tick ���** �̰��� Case A�]45.33%�^�A���ܤp�W�Һ��������ǰe�欰�������B�W�ví�w�C
-- **Case D** �Ϧ� Busy Tick ���� 38.00%�A�����ǰe���h�A���I���y���F�j�q�u�L�Ħ��Ρv�P�ɶ����O�C
+### Channel 使用情形
+- **Busy Tick 比例** 最高為 Case A（45.33%），表示小規模網路中的傳送行為較集中、頻率穩定。
+- **Case D** 反而 Busy Tick 降至 38.00%，說明傳送雖多，但碰撞造成了大量「無效佔用」與時間浪費。
 
-### ��X�[��]�ھڲέp�ƾڡ^
+### 綜合觀察（根據統計數據）
 
-- �b�p�W�Һ����U�]Case A�BB�G3 STA�^�A���� frame ���v���M���L���ɶǰe���ơ]3.67 �� 3.78�^�A���]�I�����ƼW�[�]2.33 �� 3.33�^�Asuccess rate �ϦӤU���]80.03% �� 67.90%�^�A�ɭP throughput �� A ��֡]8.66 �� 7.67�^�C
-- �� STA �ƴ��ɦ� 10�]Case C�BD�^�A�Y�ϭӧO�`�I�ǰe�v�����]C�G1.97�FD�G2.27�^�A����ǰe�q�j�T�W�[�Achannel ���οE�P�A�ɭP�I����ɡ]C�G13.67�FD�G18.00�^�Asuccess rate ���O���� 29.20% �P 20.77%�Athroughput �Y�^�� 5.67 �M 4.67�C
-- ��X���R��ܡG**���O��@�]���y���į�U��**�A�ӬO�u�`�I�� �� �ǰe�N�@�v�����n�L���ɡA�ɭP�W�e�귽�Q�L�׮��ӡA�ϱo�h�ƶǰe�����ѡA�����i�J�Y�����Ĳv�~�V�C
-
----
-
-## ? IEEE 802.11 �зǬ۲ũ��ˬd
-
-- ? ���T��@ DIFS �� Backoff �� TX �� SIFS �� ACK
-- ? �ǰe�ݵ��ݴC�� idle �í˼� DIFS
-- ? ���ѷ|���Ǩýվ� contention window
-- ? �ǰe��|�̾ڬO�_���� ACK �i��y�{����
-- ? Slot-based �˼ƻP�I���B�z�ҲųW�d
+- 在小規模網路下（Case A、B：3 STA），提高 frame 機率雖然略微提升傳送次數（3.67 → 3.78），但因碰撞次數增加（2.33 → 3.33），success rate 反而下降（80.03% → 67.90%），導致 throughput 較 A 減少（8.66 → 7.67）。
+- 當 STA 數提升至 10（Case C、D），即使個別節點傳送率不高（C：1.97；D：2.27），整體傳送量大幅增加，channel 爭用激烈，導致碰撞急升（C：13.67；D：18.00），success rate 分別降至 29.20% 與 20.77%，throughput 崩跌至 5.67 和 4.67。
+- 綜合分析顯示：**不是單一因素造成效能下降**，而是「節點數 × 傳送意願」的乘積過高時，導致頻寬資源被過度消耗，使得多數傳送都失敗，網路進入嚴重的效率瓶頸。
 
 ---
 
-## ? ���Ӥu�@�P�X�R��V
+## 📏 IEEE 802.11 標準相符性檢查
 
-### �\����X�R
-- RTS/CTS �קK hidden node ���D  
-- �䴩�h�q�D�P�h��a�x  
-- ���� PIFS �P PCF �Ҧ�  
-- ��@ queue buffer �ҫ��]�D��@�ʥ]�^
+- ✅ 正確實作 DIFS → Backoff → TX → SIFS → ACK
+- ✅ 傳送需等待媒介 idle 並倒數 DIFS
+- ✅ 失敗會重傳並調整 contention window
+- ✅ 傳送後會依據是否收到 ACK 進行流程切換
+- ✅ Slot-based 倒數與碰撞處理皆符規範
 
-### �έp�P��ı��
-- ��X throughput/collision �H�ɶ��ܤƹϪ�  
-- ��ı�Ƽ��� 
+---
 
-### ��ǩʴ���
-- ������ӽo�ɶ����P�z�Z�]noise�^  
-- �[�J�Z���I��B�ǿ�t�v�ܰʵ����z�h�Ѽ�
+## 🚀 未來工作與擴充方向
+
+### 功能性擴充
+- RTS/CTS 避免 hidden node 問題  
+- 支援多通道與多基地台  
+- 模擬 PIFS 與 PCF 模式  
+- 實作 queue buffer 模型（非單一封包）
+
+### 統計與視覺化
+- 整合 throughput/collision 隨時間變化圖表  
+- 視覺化模擬 
+
+### 精準性提升
+- 模擬更細緻時間單位與干擾（noise）  
+- 加入距離衰減、傳輸速率變動等物理層參數
