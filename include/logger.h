@@ -9,8 +9,19 @@ void log_backoff(int sta_id);                      // 發起一次 backoff
 void log_drop(int sta_id);
 void log_channel_busy();                           // 某 tick 媒介為 busy
 void log_channel_idle();                           // 某 tick 媒介為 idle
-void log_tick_transmission(int tick, int sta_id);  // 某 tick 某 STA 正在傳送
+void log_tick_transmission(int sta_id);  // 某 tick 某 STA 正在傳送
 void print_simulation_summary(int sim_time);       // 統計結果輸出
 
+typedef struct {
+    int sta;
+    int prob;
+    int total_throughput;
+    int total_collision;
+    int total_busy;
+    int total_idle;
+    float avg_success;
+    float avg_transmit;
+    float success_rate;
+} Result;
 
 #endif

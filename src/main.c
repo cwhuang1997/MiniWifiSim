@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "station.h"
+
 #include "event.h"
 #include "logger.h"
+#include "station.h"
 
 
 
@@ -35,25 +36,32 @@ int main() {
                     sta->has_frame = 1;
                     break;
 
-                // case EVENT_ACK:
-                //     receive_ack(sta, time);
-                //     log_success(e->sta_id, 0);  // ? 成功收到 ACK
-                //     break;
-
-                case EVENT_BACKOFF_RESUME:
-                    if (sta->pause_backoff >= 0) {
-                        sta->backoff_counter = sta->pause_backoff;
-                        sta->pause_backoff = -1;
-                    }
-                    break;
-
                 case EVENT_TIMEOUT:
                     // 如果 timeout，但目前還沒超過最大重傳次數，進入 retry
                     if (stations[e->sta_id].state == STA_WAIT_ACK) {
                         stations[e->sta_id].wait_ack_timer = 0;
-                        log_retry(e->sta_id);  // ? 模擬重傳
+                        log_retry(e->sta_id);  //  模擬重傳
                     }
                     break;
+
+                // case EVENT_TIMEOUT:
+                //     if (stations[e->sta_id].state == STA_WAIT_ACK) {
+                //         Station* sta = &stations[e->sta_id];
+                //         sta->retry_count++;
+                //         if (sta->retry_count <= MAX_RETRY) {
+                //             sta->state = STA_DIFS_WAIT;
+                //             sta->difs_timer = DIFS;
+                //             sta->wait_ack_timer = 0;
+                //             log_retry(e->sta_id);
+                //         } else {
+                //             // 超過最大重傳次數，丟棄 frame
+                //             sta->state = STA_IDLE;
+                //             sta->has_frame = 0;
+                //             sta->retry_count = 0;
+                //             log_drop(e->sta_id);
+                //         }
+                //     }
+                //     break;
 
                 default: break;
             }
@@ -68,7 +76,6 @@ int main() {
             if (is_transmitting(&stations[i])) {
                 channel_busy = 1;
                 num_transmitting++;
-                // .log_tick_transmission(time, i);  // ? 記錄誰在傳送
             }
         }
 
@@ -81,11 +88,16 @@ int main() {
                 channel_idle_since = time;  // 第一次變 idle，就記錄這個 tick
             }
         }
-
+        // 先印出 ACK 資訊
+        for (int i = 0; i < NUM_STA; i++) {
+            Station* sta = &stations[i];
+            if (sta->state == STA_WAIT_ACK && sta->wait_ack_timer == 1) {
+                printf("[%d] STA %d received ACK successfully\n", time, sta->id);
+            }
+        }
         // 更新每個 STA 狀態
         for (int i = 0; i < NUM_STA; i++) {
             Station* sta = &stations[i];
-
             // 儲存前一狀態以便判斷是否剛剛進入 WAIT_ACK
             int prev_state = sta->state;
 
@@ -93,11 +105,9 @@ int main() {
 
             // 剛進入 WAIT_ACK → 安排 future ACK 或 timeout event
             if (prev_state != STA_WAIT_ACK && sta->state == STA_WAIT_ACK) {
-                if (num_transmitting == 1) {
-                    add_event(&event_queue, time + 2, EVENT_ACK, i);  // 傳送成功，模擬延遲 2 tick 後收到 ACK
-                } else {
-                    add_event(&event_queue, time, EVENT_TIMEOUT, i);  // 發生碰撞 → 不會收到 ACK
-                    log_collision(i);  // ? 發生碰撞
+                if (num_transmitting > 1) {
+                    add_event(&event_queue, time + 1, EVENT_TIMEOUT, i);
+                    log_collision(i);
                 }
             }
         }
