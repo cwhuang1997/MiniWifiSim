@@ -120,3 +120,74 @@ MINI802.11SIM/
 ### 精準性提升
 - 模擬更細緻時間單位與干擾（noise）  
 - 加入距離衰減、傳輸速率變動等物理層參數
+
+---
+
+## ▶️ 操作說明與執行範例
+
+### ✅ 編譯與執行步驟
+
+本專案已提供 `VS Code` 的建置設定，使用者只需以下步驟即可執行模擬器：
+
+1. **下載並開啟本專案於 VS Code**
+2. **按下 `Ctrl + Shift + B`**
+   - VS Code 將自動呼叫 `tasks.json` 中的 `gcc` 編譯指令，將所有程式編譯成 `wifi_sim` 執行檔。
+3. **在終端機執行：**
+   ```bash
+   ./wifi_sim
+   ```
+
+---
+
+### 📋 執行輸出範例（節錄）
+
+```text
+[0] STA 0 enter DIFS (wait 3)
+[0] STA 1 enter DIFS (wait 3)
+[0] STA 2 enter DIFS (wait 3)
+[3] STA 0 starts BACKOFF (retry = 0, slot = 2)
+[3] STA 1 starts TRANSMIT (retry = 0, slot = 0)
+[3] STA 2 starts BACKOFF (retry = 0, slot = 2)
+[6] Receiver got frame from STA 1, wait SIFS (1 tick) resend ACK
+[8] STA 1 received ACK successfully!
+[8] STA 0 enter DIFS (wait 3)
+[8] STA 2 enter DIFS (wait 3)
+[9] STA 1 has a new frame to send
+[9] STA 1 enter DIFS (wait 3)
+[11] STA 0 resumes BACKOFF (slot = 2)
+[11] STA 2 resumes BACKOFF (slot = 2)
+[12] STA 1 starts BACKOFF (retry = 0, slot = 7)
+[13] STA 0 starts TRANSMIT
+[13] STA 2 starts TRANSMIT
+STA 0 COLLISION!!!
+STA 2 COLLISION!!!
+[16] STA 1 enter DIFS (wait 3)
+[18] STA 0 enter DIFS (wait 3)
+[18] STA 2 enter DIFS (wait 3)
+[19] STA 1 resumes BACKOFF (slot = 6)
+[21] STA 0 starts BACKOFF (retry = 1, slot = 10)
+[21] STA 2 starts BACKOFF (retry = 1, slot = 11)
+[25] STA 1 starts TRANSMIT
+...
+```
+
+---
+
+### 📌 模擬結束後會自動輸出總結報告：
+
+```text
+===== Simulation Summary =====
+Simulation Parameters:
+- Total STA             : 3
+- Total Tick Time       : 100
+- New Frame Prob (%)    : 50
+...
+
+Aggregate Results:
+- Total throughput     : 8
+- Total collisions     : 2
+- Total busy ticks     : 46 (46.00%)
+- Total idle ticks     : 54 (54.00%)
+- Overall success rate : 72.7%
+==============================
+```

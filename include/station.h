@@ -1,58 +1,58 @@
 #ifndef STATION_H
 #define STATION_H
 
-// ========== ¼ÒÀÀ°Ñ¼Æ³]©w¡]®É¶¡³æ¦ì: tick¡^ ==========
+// ========== æ¨¡æ“¬åƒæ•¸è¨­å®šï¼ˆæ™‚é–“å–®ä½: tickï¼‰ ==========
 
-#define SLOT_TIME 1                    // ¨C tick = 1 slot
+#define SLOT_TIME 1                    // æ¯ tick = 1 slot
 #define SIFS 1                         // Short Inter-Frame-Space   
-#define PIFS (SIFS + SLOT_TIME)        // Point Inter-Frame-Space (¥H«áÂX¥R)
+#define PIFS (SIFS + SLOT_TIME)        // Point Inter-Frame-Space (ä»¥å¾Œæ“´å……)
 #define DIFS (SIFS + 2 * SLOT_TIME)    // Distributed Inter-Frame-Space
-#define FRAME_TX_TIME 3                // Frame ¶Ç°e®É¶¡
-#define ACK_TX_TIME 1                  // ACK ¶Ç°e®É¶¡
-#define ACK_WAIT (SIFS + ACK_TX_TIME)  // ¼ÒÀÀ±µ¦¬ºİ¦¬¨ì¸ê®Æµ¥«İ SIFS + ¶Ç°e ACK (1 tick) ®É¶¡
+#define FRAME_TX_TIME 3                // Frame å‚³é€æ™‚é–“
+#define ACK_TX_TIME 1                  // ACK å‚³é€æ™‚é–“
+#define ACK_WAIT (SIFS + ACK_TX_TIME)  // æ¨¡æ“¬æ¥æ”¶ç«¯æ”¶åˆ°è³‡æ–™ç­‰å¾… SIFS + å‚³é€ ACK (1 tick) æ™‚é–“
 
-#define CW_MIN 7                       // ªì©l contention window    
-#define CW_MAX 31                      // ¤è«K¼ÒÀÀÆ[¹î¡A§Ú­Ì³Ì¤j³]¬° 31 (7, 15, 31,..., 255)
-#define MAX_RETRY 5                    // ²Ä¤G¦¸­«¶Ç«á³£¨Ï¥Î CW_MAX = 31
+#define CW_MIN 7                       // åˆå§‹ contention window    
+#define CW_MAX 31                      // æ–¹ä¾¿æ¨¡æ“¬è§€å¯Ÿï¼Œæˆ‘å€‘æœ€å¤§è¨­ç‚º 31 (7, 15, 31,..., 255)
+#define MAX_RETRY 5                    // ç¬¬äºŒæ¬¡é‡å‚³å¾Œéƒ½ä½¿ç”¨ CW_MAX = 31
 
-#define SIM_TIME 100                   // ¼ÒÀÀÁ`®É¶¡¡]tick¡^
-#define NUM_STA 10                      // ¼ÒÀÀªº STA ¼Æ¶q
-#define MAX_STA 30                     // ³Ì¦h¤ä´©ªº STA ¼Æ¶q¤W­­¡]¥Î©ó²Î­p¸ê®Æ°}¦C¤j¤p¡^
-#define NEW_FRAME_PROB 90              // ¨C­Ó IDLE STA ¦³ 50% ¾÷²v¦A¶i¤J·sªº tick ²£¥Í·sªº frame
+#define SIM_TIME 100                   // æ¨¡æ“¬ç¸½æ™‚é–“ï¼ˆtickï¼‰
+#define NUM_STA 3                      // æ¨¡æ“¬çš„ STA æ•¸é‡
+#define MAX_STA 30                     // æœ€å¤šæ”¯æ´çš„ STA æ•¸é‡ä¸Šé™ï¼ˆç”¨æ–¼çµ±è¨ˆè³‡æ–™é™£åˆ—å¤§å°ï¼‰
+#define NEW_FRAME_PROB 50              // æ¯å€‹ IDLE STA æœ‰ 50% æ©Ÿç‡å†é€²å…¥æ–°çš„ tick ç”¢ç”Ÿæ–°çš„ frame
 
-// ========== STA ª¬ºA¾÷©w¸q ==========
+// ========== STA ç‹€æ…‹æ©Ÿå®šç¾© ==========
 
 typedef enum {
-    STA_IDLE,               // ¶¢¸mª¬ºA¡Aµ¥«İ­n¶Ç°eªº frame¡A©Îµ¥«İ´C¤¶ÅÜ¦¨ªÅ¶¢
-    STA_DIFS_WAIT,          // µ¥«İ DIFS¡]Distributed Inter-Frame Space¡^µ²§ô
-    STA_BACKOFF,            // Backoff ¶¥¬q¡G´C¤¶«ùÄòªÅ¶¢ ¡÷ ¶}©l­Ë¼Æ slot¡]tick¡^¡A¼Æ¨ì¹s¤~¯à°e
-    STA_TRANSMIT,           // ¶Ç°e frame ¤¤¡]¥¿¦b¦û¥Î´C¤¶¡^
-    STA_WAIT_ACK,           // ¶Ç°e§¹²¦¡Aµ¥«İ ACK frame ¦^À³
-    STA_TIMEOUT,            // Timeout ª¬ºA¡G¥Î©ó¼ÒÀÀ¶Ç°e¥¢±Ñ«áªºµ¥«İ´Á
+    STA_IDLE,               // é–’ç½®ç‹€æ…‹ï¼Œç­‰å¾…è¦å‚³é€çš„ frameï¼Œæˆ–ç­‰å¾…åª’ä»‹è®Šæˆç©ºé–’
+    STA_DIFS_WAIT,          // ç­‰å¾… DIFSï¼ˆDistributed Inter-Frame Spaceï¼‰çµæŸ
+    STA_BACKOFF,            // Backoff éšæ®µï¼šåª’ä»‹æŒçºŒç©ºé–’ â†’ é–‹å§‹å€’æ•¸ slotï¼ˆtickï¼‰ï¼Œæ•¸åˆ°é›¶æ‰èƒ½é€
+    STA_TRANSMIT,           // å‚³é€ frame ä¸­ï¼ˆæ­£åœ¨ä½”ç”¨åª’ä»‹ï¼‰
+    STA_WAIT_ACK,           // å‚³é€å®Œç•¢ï¼Œç­‰å¾… ACK frame å›æ‡‰
+    STA_TIMEOUT,            // Timeout ç‹€æ…‹ï¼šç”¨æ–¼æ¨¡æ“¬å‚³é€å¤±æ•—å¾Œçš„ç­‰å¾…æœŸ
 } StationState;
 
-// ========== STA µ²ºc©w¸q ==========
+// ========== STA çµæ§‹å®šç¾© ==========
 
 typedef struct {
     int id;                 // STA ID
     StationState state;     // STA state
-    int difs_timer;         // DIFS ­Ë¼Æ¬í¼Æ
-    int backoff_counter;    // backoff ¼Æ¶q
-    int frame_tx_timer;     // ¶Ç°e®É¶¡
-    int retry_count;        // ¤w­«¶Ç¦¸¼Æ
-    int has_frame;          // ¬O§_¦³ frame ­n¶Ç¡]1 ªí¥Ü¦³¸ê®Æ¡^
-    int wait_ack_timer;     // µ¥«İ ACK ¦^¶Ç¬í¼Æ
-    int pause_backoff;      // ­Y backoff ¹Lµ{³Q¤¤Â_¡A¬ö¿ı³Ñ¾l backoff ®É¶¡¡A-1: ¥Nªí¥Ø«e¨S¦³³Q¼È°±
-    int timeout;            // µ¥«İ ACK ªº¹O®É­Ë¼Æ­p®É¾¹
+    int difs_timer;         // DIFS å€’æ•¸ç§’æ•¸
+    int backoff_counter;    // backoff æ•¸é‡
+    int frame_tx_timer;     // å‚³é€æ™‚é–“
+    int retry_count;        // å·²é‡å‚³æ¬¡æ•¸
+    int has_frame;          // æ˜¯å¦æœ‰ frame è¦å‚³ï¼ˆ1 è¡¨ç¤ºæœ‰è³‡æ–™ï¼‰
+    int wait_ack_timer;     // ç­‰å¾… ACK å›å‚³ç§’æ•¸
+    int pause_backoff;      // è‹¥ backoff éç¨‹è¢«ä¸­æ–·ï¼Œç´€éŒ„å‰©é¤˜ backoff æ™‚é–“ï¼Œ-1: ä»£è¡¨ç›®å‰æ²’æœ‰è¢«æš«åœ
+    int timeout;            // ç­‰å¾… ACK çš„é€¾æ™‚å€’æ•¸è¨ˆæ™‚å™¨
 } Station;
 
-// ªì©l¤Æ STA ªºÄæ¦ì¡A³]©w ID »Pªì©lª¬ºA¬° IDLE¡]ªì©l°²³]¨C­Ó STA ¦³¤@­Ó frame ­n¶Ç¡^
+// åˆå§‹åŒ– STA çš„æ¬„ä½ï¼Œè¨­å®š ID èˆ‡åˆå§‹ç‹€æ…‹ç‚º IDLEï¼ˆåˆå§‹å‡è¨­æ¯å€‹ STA æœ‰ä¸€å€‹ frame è¦å‚³ï¼‰
 void init_station(Station* sta, int id);
 
-// STA ¦b¨C­Ó tick ªº¦æ¬°§ó·s¡G¨Ì¾Ú¥Ø«eª¬ºA¡B´C¤¶ª¬ºA¡]busy or idle¡^Âà²¾¨ì¤U¤@­Óª¬ºA
+// STA åœ¨æ¯å€‹ tick çš„è¡Œç‚ºæ›´æ–°ï¼šä¾æ“šç›®å‰ç‹€æ…‹ã€åª’ä»‹ç‹€æ…‹ï¼ˆbusy or idleï¼‰è½‰ç§»åˆ°ä¸‹ä¸€å€‹ç‹€æ…‹
 void update_station(Station* sta, int time, int channel_busy, int num_transmitting);
 
-// ¦^¶Ç³o­Ó STA ¬O§_¥¿¦b¶Ç°e frame¡]state ¬° STA_TRANSMIT ®É¦^¶Ç 1¡A§_«h¦^¶Ç 0¡^
+// å›å‚³é€™å€‹ STA æ˜¯å¦æ­£åœ¨å‚³é€ frameï¼ˆstate ç‚º STA_TRANSMIT æ™‚å›å‚³ 1ï¼Œå¦å‰‡å›å‚³ 0ï¼‰
 int is_transmitting(Station* sta);
 
 int is_waitingACK(Station* sta);////////////////////////////////////////////////////////////////////////////////////////////
