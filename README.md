@@ -1,4 +1,4 @@
-
+﻿
 # MiniWifiSim - 模擬 IEEE 802.11 CSMA/CA 協定的 Tick-based 模擬器
 
 ## 📁 目錄結構
@@ -40,6 +40,11 @@ MINI802.11SIM/
 - 模擬時間以 tick 為單位，逐 tick 處理傳送與事件行為
 
 本模擬器可協助觀察各種環境參數對於 throughput、collision 等效能指標的影響。
+
+---
+Figure: State transition flowchart of a simulated STA in my CSMA/CA implementation
+
+![State Transition Diagram](state-transition.png)
 
 ---
 
